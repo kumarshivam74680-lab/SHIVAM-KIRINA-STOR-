@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shivam Kirana Store</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans Devanagari",sans-serif;background:#f5f7f5;color:#222}
+header{background:#198754;color:white;padding:18px 14px;text-align:center;position:sticky;top:0;z-index:5;box-shadow:0 2px 8px #0002}
+header h1{margin:0;font-size:25px}header p{margin:6px 0 0}
+.container{max-width:900px;margin:auto;padding:14px}
+.search{width:100%;padding:13px;border:1px solid #ddd;border-radius:10px;font-size:16px;margin-bottom:14px}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.card{background:white;border-radius:12px;padding:13px;box-shadow:0 2px 8px #0001}
+.card h3{font-size:17px;margin:0 0 6px}.meta{color:#666;font-size:14px}.price{font-weight:bold;color:#198754;font-size:18px;margin:8px 0}
+button{border:0;border-radius:8px;padding:9px 12px;cursor:pointer;font-weight:bold}
+.add{background:#198754;color:white;width:100%}.qty{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:8px}.qty button{background:#e8f5ee;color:#198754;font-size:18px}
+.cart{background:white;margin-top:18px;border-radius:12px;padding:15px;box-shadow:0 2px 8px #0001}
+.cart h2{margin-top:0}.cartrow{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:9px 0;gap:10px}
+.total{font-size:20px;font-weight:bold;margin:14px 0}.order{background:#25D366;color:white;width:100%;font-size:17px;padding:13px}
+.clear{background:#eee;width:100%;margin-top:8px}.empty{color:#777;text-align:center}
+footer{text-align:center;padding:25px;color:#666}
+</style>
+</head>
+<body>
+<header><h1>🛒 Shivam Kirana Store</h1><p>घर बैठे सामान ऑर्डर करें • WhatsApp Order</p></header>
+<div class="container">
+<input id="search" class="search" placeholder="🔎 सामान खोजें..." oninput="render()">
+<div id="products" class="products"></div>
+<div class="cart">
+<h2>🛍️ आपका Cart</h2>
+<div id="cart"></div>
+<div id="total" class="total"></div>
+
+<h2>👤 Customer Details</h2>
+<input id="customerName" class="search" placeholder="आपका नाम">
+<input id="customerPhone" class="search" placeholder="मोबाइल नंबर" type="tel" maxlength="10">
+<textarea id="customerAddress" class="search" placeholder="पूरा Address" rows="3" style="resize:vertical"></textarea>
+
+<button class="order" onclick="orderWhatsApp()">📲 WhatsApp पर Order करें</button>
+<button class="clear" onclick="clearCart()">Cart खाली करें</button>
+</div>
+</div>
+<footer>📞 संपर्क: 9546100802<br>Shivam Kirana Store</footer>
+
+<script>
+const phone="919546100802";
+const products=[
+["आटा","1 kg",45],["चावल","1 kg",55],["चना","1 kg",75],["मसूर दाल","1 kg",95],
+["अरहर दाल","1 kg",120],["मूंग दाल","1 kg",115],["चीनी","1 kg",48],["चायपत्ती","250 g",90],
+["खाने का तेल","1 L",130],["नमक","1 kg",25],["पापड़","1 पैकेट",40],["साबुन","1 पीस",35],
+["सर्फ/डिटर्जेंट","1 kg",70],["कुकर","3 L",750],["चिप्स","1 पैकेट",10],["बिस्किट","1 पैकेट",10],
+["टॉफी","1 पीस",1],["पेन","1 पीस",10],["कॉपी","1 पीस",40],["माचिस","1 पैकेट",2],
+["हल्दी","100 g",25],["मिर्च पाउडर","100 g",30],["धनिया पाउडर","100 g",25],["जीरा","100 g",35],
+["बेसन","500 g",55],["सूजी","500 g",35],["मैदा","1 kg",45],["पोहा","500 g",40],
+["नूडल्स","1 पैकेट",15],["नमकीन","1 पैकेट",10],["टूथपेस्ट","100 g",55],["शैम्पू","1 सैशे/पैक",5],
+["मच्छर अगरबत्ती","1 पैकेट",40],["मोमबत्ती","1 पैकेट",20]
+];
+let cart={};
+function render(){
+ const q=document.getElementById("search").value.toLowerCase();
+ document.getElementById("products").innerHTML=products.map((p,i)=>{
+  if(!p[0].toLowerCase().includes(q))return "";
+  const n=cart[i]||0;
+  return `<div class="card"><h3>${p[0]}</h3><div class="meta">${p[1]}</div><div class="price">₹${p[2]}${p[0]=="शैम्पू"?" से":""}</div>
+  ${n?`<div class="qty"><button onclick="change(${i},-1)">−</button><b>${n}</b><button onclick="change(${i},1)">+</button></div>`:`<button class="add" onclick="change(${i},1)">+ Cart में डालें</button>`}</div>`;
+ }).join("");
+ renderCart();
+}
+function change(i,d){cart[i]=(cart[i]||0)+d;if(cart[i]<=0)delete cart[i];render()}
+function renderCart(){
+ let keys=Object.keys(cart), total=0;
+ if(!keys.length){document.getElementById("cart").innerHTML='<div class="empty">Cart अभी खाली है</div>';document.getElementById("total").textContent="कुल: ₹0";return}
+ document.getElementById("cart").innerHTML=keys.map(i=>{let p=products[i],s=p[2]*cart[i];total+=s;return `<div class="cartrow"><span>${p[0]} × ${cart[i]}</span><b>₹${s}</b></div>`}).join("");
+ document.getElementById("total").textContent="कुल: ₹"+total;
+}
+function orderWhatsApp(){
+ let keys=Object.keys(cart);
+ if(!keys.length){alert("पहले सामान Cart में डालें।");return}
+
+ const name=document.getElementById("customerName").value.trim();
+ const customerPhone=document.getElementById("customerPhone").value.trim();
+ const address=document.getElementById("customerAddress").value.trim();
+
+ if(!name || !customerPhone || !address){
+   alert("कृपया Customer Name, Mobile Number और Address तीनों भरें।");
+   return;
+ }
+ if(!/^[0-9]{10}$/.test(customerPhone)){
+   alert("कृपया 10 अंकों का सही Mobile Number डालें।");
+   return;
+ }
+
+ let total=0,msg=`नमस्ते Shivam Kirana Store,%0Aमुझे यह सामान चाहिए:%0A%0A`;
+ keys.forEach(i=>{
+   let p=products[i],s=p[2]*cart[i];
+   total+=s;
+   msg+=`${p[0]} - ${p[1]} - ${cart[i]} × ₹${p[2]} = ₹${s}%0A`;
+ });
+ msg+=`%0Aकुल राशि: ₹${total}%0A%0A👤 Customer Details%0Aनाम: ${encodeURIComponent(name)}%0Aमोबाइल: ${encodeURIComponent(customerPhone)}%0Aपता: ${encodeURIComponent(address)}`;
+ window.open(`https://wa.me/${phone}?text=${msg}`,"_blank");
+}
+function clearCart(){cart={};render()}
+render();
+</script>
+</body>
+</html>
